@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.employeemgmt.ui.fx.controller.EmployeeSearchController">
+
+    <!-- Top search bar -->
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <Label text="Search:"/>
+            <!-- matches @FXML TextField txtSearch -->
+            <TextField fx:id="txtSearch"
+                       promptText="Enter name / SSN / ID"
+                       HBox.hgrow="ALWAYS"/>
+
+            <!-- matches @FXML ComboBox<?> cmbMode -->
+            <ComboBox fx:id="cmbMode"
+                      prefWidth="140"/>
+
+            <Button text="Search" onAction="#onSearch"/>
+        </HBox>
+    </top>
+
+    <!-- Center: results table -->
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- matches @FXML TableView<?> table -->
+            <TableView fx:id="table" prefHeight="400.0">
+                <columns>
+                    <!-- @FXML TableColumn<?, Integer> colId -->
+                    <TableColumn fx:id="colId"
+                                 text="ID"
+                                 prefWidth="60"/>
+
+                    <!-- @FXML TableColumn<?, String> colFirst -->
+                    <TableColumn fx:id="colFirst"
+                                 text="First Name"
+                                 prefWidth="120"/>
+
+                    <!-- @FXML TableColumn<?, String> colLast -->
+                    <TableColumn fx:id="colLast"
+                                 text="Last Name"
+                                 prefWidth="120"/>
+
+                    <!-- @FXML TableColumn<?, String> colSsn -->
+                    <TableColumn fx:id="colSsn"
+                                 text="SSN"
+                                 prefWidth="120"/>
+
+                    <!-- @FXML TableColumn<?, String> colEmail -->
+                    <TableColumn fx:id="colEmail"
+                                 text="Email"
+                                 prefWidth="180"/>
+
+                    <!-- @FXML TableColumn<?, String> colDivision -->
+                    <TableColumn fx:id="colDivision"
+                                 text="Division"
+                                 prefWidth="140"/>
+
+                    <!-- @FXML TableColumn<?, String> colJobTitle -->
+                    <TableColumn fx:id="colJobTitle"
+                                 text="Job Title"
+                                 prefWidth="160"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+
+    <!-- Bottom: actions -->
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <Button text="Edit Selected" onAction="#onEdit"/>
+            <Button text="Back" onAction="#onBack"/>
+        </HBox>
+    </bottom>
+</BorderPane>
