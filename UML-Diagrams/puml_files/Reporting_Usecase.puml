@@ -1,0 +1,41 @@
+@startuml
+left to right direction
+actor Admin
+actor "Report Viewer" as Viewer
+
+rectangle "Employee Management System – Reporting" {
+  (Generate FTE Info + Pay History) as UC_FTE
+  (Generate Monthly Pay by Job Title) as UC_Title
+  (Generate Monthly Pay by Division) as UC_Div
+
+  (Select Employee) as UC_SelectEmp
+  (Select Period Month/Year) as UC_Period
+  (Validate Inputs) as UC_Validate
+  (Export/Print Report) as UC_Export
+}
+
+' Primary actors to report use cases
+Admin  -up-> UC_FTE
+Admin  -up-> UC_Title
+Admin  ---> UC_Div
+Viewer --> UC_FTE
+Viewer --> UC_Title
+Viewer --> UC_Div
+
+' Includes
+UC_FTE   ..> UC_SelectEmp  : <<include>>
+UC_FTE   ..> UC_Validate   : <<include>>
+UC_Title ..> UC_Period     : <<include>>
+UC_Title ..> UC_Validate   : <<include>>
+UC_Div   ..> UC_Period     : <<include>>
+UC_Div   ..> UC_Validate   : <<include>>
+
+' Optional extension (post-generation action)
+UC_Export ..> UC_FTE   : <<extend>>
+UC_Export ..> UC_Title : <<extend>>
+UC_Export ..> UC_Div   : <<extend>>
+
+note bottom of "Employee Management System – Reporting"
+Data sources: Employee, Payroll/PayStatement, Division, JobTitle.
+end note
+@enduml

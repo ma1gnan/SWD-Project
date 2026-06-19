@@ -1,0 +1,94 @@
+@startuml EmployeeManagementSystem
+
+' Entity Classes (Database Models)
+class Employee {
+  - empid: int
+  - Fname: String
+  - Lname: String
+  - email: String
+  - HireDate: Date
+  - Salary: decimal
+  - SSN: String
+  + getFullName(): String
+  + getInfo(): String
+}
+
+class Division {
+  - ID: int
+  - Name: String
+  - city: String
+  - addressLine1: String
+  - addressLine2: String
+  - state: String
+  - country: String
+  - postalCode: String
+  + getDetails(): String
+}
+
+class JobTitle {
+  - job_title_id: int
+  - job_title: String
+  + getTitle(): String
+}
+
+class Payroll {
+  - payID: int
+  - pay_date: Date
+  - earnings: decimal
+  - fed_tax: decimal
+  - fed_med: decimal
+  - fed_SS: decimal
+  - state_tax: decimal
+  - retire_401k: decimal
+  - health_care: decimal
+  - empid: int
+  + getNetPay(): decimal
+  + getTotalDeductions(): decimal
+}
+
+class EmployeeDivision {
+  - empid: int
+  - div_ID: int
+}
+
+class EmployeeJobTitle {
+  - empid: int
+  - job_title_id: int
+}
+
+' Service Layer
+class EmployeeService {
+  - employees: List<Employee>
+  + search(term: String, type: String): Employee
+  + update(empid: int, data: Map): boolean
+  + addSSN(): boolean
+  + applyIncrease(pct: double, min: decimal, max: decimal): int
+  + getPayHistory(empid: int): Map
+}
+
+' Report Generator
+class ReportGenerator {
+  - employees: List<Employee>
+  - payrolls: List<Payroll>
+  - divisions: List<Division>
+  - jobTitles: List<JobTitle>
+  + ReportGenerator_PayHistory(empid: int): Report
+  + ReportGenerator_TitlePay(month: int, year: int): Report
+  + ReportGenerator_Division(month: int, year: int): Report
+}
+
+' Relationships
+Employee "1" -- "0..*" Payroll : has
+Employee "1" -- "1..*" EmployeeDivision : belongs to
+Employee "1" -- "1..*" EmployeeJobTitle : has
+Division "1" -- "0..*" EmployeeDivision : contains
+JobTitle "1" -- "0..*" EmployeeJobTitle : describes
+
+EmployeeService --> Employee : manages
+ReportGenerator --> Employee : uses
+ReportGenerator --> Payroll : uses
+ReportGenerator --> Division : uses
+ReportGenerator --> JobTitle : uses
+
+@enduml
+
