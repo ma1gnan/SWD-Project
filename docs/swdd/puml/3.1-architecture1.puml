@@ -1,0 +1,96 @@
+@startuml LayeredArchitecture
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam component {
+    BackgroundColor<<ui>> #E1F5FE
+    BackgroundColor<<service>> #F3E5F5
+    BackgroundColor<<dao>> #FFF9C4
+    BackgroundColor<<db_access>> #FFECB3
+    BackgroundColor<<database>> #C8E6C9
+    BorderColor #424242
+    FontSize 11
+}
+
+package "User Interface Layer" <<ui>> {
+    [ConsoleUI]
+    [EmployeeConsole]
+    [ReportConsole]
+}
+
+package "Service Layer" <<service>> {
+    [EmployeeService]
+    [ReportService]
+}
+
+package "Data Access Object Layer" <<dao>> {
+    [EmployeeDAO]
+    [PayrollDAO]
+    [ReportDAO]
+    [DivisionDAO]
+    [JobTitleDAO]
+}
+
+package "Database Access Layer" <<db_access>> {
+    [DatabaseConnectionManager]
+    [DatabaseInit]
+}
+
+package "Database Layer" <<database>> {
+    database "MySQL 9.0\nInnoDB Engine" as DB
+}
+
+' Main flow connections
+[ConsoleUI] --> [EmployeeService]
+[ConsoleUI] --> [ReportService]
+[EmployeeConsole] --> [EmployeeService]
+[ReportConsole] --> [ReportService]
+
+[EmployeeService] --> [EmployeeDAO]
+[EmployeeService] --> [PayrollDAO]
+[EmployeeService] --> [DivisionDAO]
+[EmployeeService] --> [JobTitleDAO]
+[ReportService] --> [ReportDAO]
+
+[EmployeeDAO] --> [DatabaseConnectionManager]
+[PayrollDAO] --> [DatabaseConnectionManager]
+[ReportDAO] --> [DatabaseConnectionManager]
+[DivisionDAO] --> [DatabaseConnectionManager]
+[JobTitleDAO] --> [DatabaseConnectionManager]
+
+[DatabaseConnectionManager] --> DB
+[DatabaseInit] --> DB
+
+note right of "User Interface Layer"
+  **ConsoleUI**: Main menu coordinator
+  **EmployeeConsole**: Employee operations
+  **ReportConsole**: Report generation
+end note
+
+note right of "Service Layer"
+  **EmployeeService**: Business logic coordination
+  **ReportService**: Report aggregation
+  Multi-DAO orchestration
+end note
+
+note right of "Data Access Object Layer"
+  **EmployeeDAO**: CRUD operations
+  **PayrollDAO**: Payroll updates
+  **ReportDAO**: Complex queries
+  PreparedStatements
+  Transaction management
+end note
+
+note right of "Database Access Layer"
+  **DatabaseConnectionManager**:
+  Connection factory
+  Environment configuration
+  Singleton pattern
+  
+  **DatabaseInit**:
+  Schema initialization
+end note
+
+@enduml
+

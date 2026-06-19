@@ -1,0 +1,55 @@
+@startuml ReportConsoleShowTotalPayByJobTitle
+
+start
+
+:Prompt for year;
+:Read year (e.g., 2025);
+
+:Prompt for month;
+:Read month (1-12);
+
+if (month < 1 OR month > 12?) then (yes)
+  :Print "Invalid month. Must be between 1 and 12.";
+  stop
+endif
+
+:Call reportService.getTotalPayByJobTitle(year, month);
+
+if (list is empty?) then (yes)
+  :Print "No data found for {year}-{month}";
+  stop
+endif
+
+:Print report header with year-month;
+
+:Print table header;
+note right
+  Job Title | Total Pay
+end note
+
+:Print separator line;
+
+:Initialize total = 0;
+
+while (for each row in list) is (more rows)
+  :Print formatted row;
+  note right
+    job title name | $amount
+  end note
+  
+  :Add row.totalPay to total;
+endwhile (done)
+
+:Print separator line;
+
+:Print grand total;
+note right
+  TOTAL | $total
+end note
+
+:Print closing separator;
+
+stop
+
+@enduml
+

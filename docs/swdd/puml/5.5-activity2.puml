@@ -1,0 +1,87 @@
+@startuml ConsoleUIUpdateEmployee
+
+start
+
+:Display search options;
+note right
+  1. Employee ID
+  2. SSN
+  0. Back
+end note
+
+:Read search choice;
+
+switch (searchChoice)
+  case (1: ID)
+    :Read employee ID;
+    :Call employeeService.findById(id);
+  case (2: SSN)
+    :Read SSN;
+    :Call employeeService.findBySSN(ssn);
+  case (0: Back)
+    :Return;
+    stop
+  case (default)
+    :Print "Invalid choice";
+    :Return;
+    stop
+endswitch
+
+if (employee found?) then (no)
+  :Print "Employee not found";
+  stop
+endif
+
+:Print current employee details;
+
+:Prompt for new values;
+note right
+  Allow empty to keep current value
+  - First name
+  - Last name
+  - SSN
+  - Email
+  - Division ID (required)
+  - Job Title ID (required)
+end note
+
+:Read all input values;
+
+:Update employee object with non-empty values;
+
+if (division ID provided?) then (no)
+  if (employee has existing division?) then (no)
+    :Print "Error: Division ID required";
+    stop
+  else (yes)
+    :Use existing division ID;
+  endif
+else (yes)
+  :Use new division ID;
+endif
+
+if (job title ID provided?) then (no)
+  if (employee has existing job title?) then (no)
+    :Print "Error: Job Title ID required";
+    stop
+  else (yes)
+    :Use existing job title ID;
+  endif
+else (yes)
+  :Use new job title ID;
+endif
+
+:Call employeeService.updateEmployee(emp, divId, jobId);
+
+if (update successful?) then (yes)
+  :Print "Employee updated successfully";
+  :Fetch updated employee;
+  :Print updated employee details;
+else (no)
+  :Print "Update failed";
+endif
+
+stop
+
+@enduml
+

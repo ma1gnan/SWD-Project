@@ -1,0 +1,52 @@
+@startuml EmployeeDAOFindByNameFragment
+
+start
+
+:Receive name fragment;
+
+:Escape LIKE wildcards;
+note right
+  REPLACE '%' with '\%'
+  REPLACE '_' with '\_'
+end note
+
+:Construct pattern = "%" + escaped_fragment + "%";
+
+:Prepare SELECT statement;
+note right
+  SELECT e.employee_id, e.first_name, e.last_name,
+         e.SSN, e.email, ed.division_id, ej.job_title_id
+  FROM employees e
+  LEFT JOIN employee_division ed 
+    ON e.employee_id = ed.employee_id
+  LEFT JOIN employee_job_titles ej 
+    ON e.employee_id = ej.employee_id
+  WHERE e.first_name LIKE ? OR e.last_name LIKE ?
+  ORDER BY e.last_name, e.first_name
+end note
+
+:Set parameter 1 = pattern;
+:Set parameter 2 = pattern;
+
+:Execute query;
+
+:Initialize empty list;
+
+while (ResultSet has next row?) is (yes)
+  :Map row to Employee object;
+  note right
+    Extract all fields
+    Handle NULL division_id and job_title_id
+  end note
+  
+  :Add employee to list;
+endwhile (no)
+
+:Close resources;
+
+:Return list;
+
+stop
+
+@enduml
+

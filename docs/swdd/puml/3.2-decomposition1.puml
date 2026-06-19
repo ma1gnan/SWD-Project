@@ -1,0 +1,123 @@
+@startuml SubsystemDecomposition
+
+skinparam package {
+    BackgroundColor<<subsystem>> #E8EAF6
+    BorderColor #424242
+}
+
+skinparam component {
+    BackgroundColor #FFFFFF
+    BorderColor #424242
+}
+
+package "Database Connection Subsystem" <<subsystem>> {
+    [DatabaseConnectionManager] as DCM
+    [DatabaseInit] as DI
+}
+
+package "Model Subsystem" <<subsystem>> {
+    [Entity Models] as EM
+    [Validation] as VAL
+    [DTOs] as DTO
+}
+
+package "DAO Subsystem" <<subsystem>> {
+    [DAO Interfaces] as DAOI
+    [DAO Implementations] as DAOIMPL
+    [SQL Constants] as SQL
+}
+
+package "Service Subsystem" <<subsystem>> {
+    [EmployeeService] as ES
+    [ReportService] as RS
+}
+
+package "UI Subsystem" <<subsystem>> {
+    [ConsoleUI] as CUI
+    [EmployeeConsole] as EC
+    [ReportConsole] as RC
+    [Input Helpers] as IH
+}
+
+' Relationships
+CUI --> ES
+CUI --> RS
+EC --> ES
+RC --> RS
+RC --> ES
+
+ES --> DAOIMPL
+RS --> DAOIMPL
+
+DAOIMPL --> DCM
+DAOIMPL --> SQL
+DAOIMPL ..> EM
+
+EM --> VAL
+
+DI --> DCM
+
+note right of DCM
+  **DatabaseConnectionManager**
+  - Singleton pattern
+  - Environment-based config
+  - Connection pooling ready
+  
+  **DatabaseInit**
+  - Schema initialization
+  - Sample data loading
+end note
+
+note right of EM
+  **Entity Models**
+  Employee, Division, JobTitle,
+  Payroll, EmployeeDivision,
+  EmployeeJobTitle
+  
+  **Validation**
+  SSN, Email, Amount validators
+  
+  **DTOs**
+  EmployeeWithPayHistory,
+  JobTitlePay, DivisionPay
+end note
+
+note right of DAOIMPL
+  **DAO Implementations**
+  - PreparedStatements
+  - Try-with-resources
+  - LIKE wildcard escaping
+  - Foreign key validation
+  - Transaction management
+  
+  **SQL Constants**
+  Centralized query strings
+end note
+
+note right of ES
+  **EmployeeService**
+  - Business logic coordination
+  - Multi-DAO orchestration
+  - Exception translation
+  
+  **ReportService**
+  - Report generation
+  - DAO delegation
+end note
+
+note right of CUI
+  **ConsoleUI**
+  Main menu, command routing
+  
+  **EmployeeConsole**
+  Search, update, salary operations
+  
+  **ReportConsole**
+  Report menu and display
+  
+  **Input Helpers**
+  readInt(), readSSN(), etc.
+end note
+
+@enduml
+

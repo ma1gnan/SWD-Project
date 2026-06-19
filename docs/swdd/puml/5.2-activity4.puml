@@ -1,0 +1,62 @@
+@startuml ReportDAOGetEmployeeWithPayHistory
+
+start
+
+:Receive employeeId;
+
+:Prepare complex JOIN statement;
+note right
+  SELECT e.employee_id, e.first_name, e.last_name,
+         e.SSN, e.email,
+         d.name AS division_name,
+         jt.title AS job_title_name,
+         p.payroll_id, p.amount,
+         p.pay_period_start, p.pay_period_end
+  FROM employees e
+  LEFT JOIN employee_division ed 
+    ON e.employee_id = ed.employee_id
+  LEFT JOIN division d 
+    ON ed.division_id = d.division_id
+  LEFT JOIN employee_job_titles ej 
+    ON e.employee_id = ej.employee_id
+  LEFT JOIN job_titles jt 
+    ON ej.job_title_id = jt.job_title_id
+  LEFT JOIN payroll p 
+    ON e.employee_id = p.employee_id
+  WHERE e.employee_id = ?
+  ORDER BY p.pay_period_start
+end note
+
+:Set parameter = employeeId;
+
+:Execute query;
+
+:Initialize EmployeeWithPayHistory result;
+:Initialize empty payRecords list;
+:Set firstRow = true;
+
+while (ResultSet has next row?) is (yes)
+  if (firstRow?) then (yes)
+    :Map employee fields to Employee object;
+    :Set result.employee = mapped employee;
+    :Set result.divisionName = division_name;
+    :Set result.jobTitleName = job_title_name;
+    :Set firstRow = false;
+  endif
+  
+  if (payroll_id is not null?) then (yes)
+    :Map payroll fields to PayrollRecord;
+    :Add to payRecords list;
+  endif
+endwhile (no)
+
+:Set result.payRecords = payRecords;
+
+:Close resources;
+
+:Return result;
+
+stop
+
+@enduml
+

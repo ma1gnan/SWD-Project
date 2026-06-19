@@ -1,0 +1,65 @@
+@startuml ConsoleUISearchEmployee
+
+start
+
+:Display search options;
+note right
+  1. By Employee ID
+  2. By SSN
+  3. By Name
+  0. Back
+end note
+
+:Read user choice;
+
+switch (choice)
+  case (1: Employee ID)
+    :Read employee ID;
+    :Call employeeService.findById(id);
+    
+    if (employee found?) then (yes)
+      :Print employee details;
+    else (no)
+      :Print "Employee not found";
+    endif
+    
+  case (2: SSN)
+    :Read SSN (validate 9 digits);
+    :Call employeeService.findBySSN(ssn);
+    
+    if (employee found?) then (yes)
+      :Print employee details;
+    else (no)
+      :Print "Employee not found";
+    endif
+    
+  case (3: Name)
+    :Read name fragment;
+    :Call employeeService.findByName(fragment);
+    
+    if (list is empty?) then (yes)
+      :Print "No employees found";
+    else if (list size == 1?) then (yes)
+      :Print single employee details;
+    else (multiple)
+      :Print numbered list of employees;
+      :Read selection;
+      
+      if (valid selection?) then (yes)
+        :Print selected employee details;
+      else (no)
+        :Print "Invalid selection";
+      endif
+    endif
+    
+  case (0: Back)
+    :Return to main menu;
+    
+  case (default)
+    :Print "Invalid choice";
+endswitch
+
+stop
+
+@enduml
+

@@ -1,0 +1,101 @@
+@startuml ComponentClassDiagram
+
+skinparam class {
+    BackgroundColor<<entry>> #E3F2FD
+    BackgroundColor<<ui>> #F3E5F5
+    BackgroundColor<<service>> #FFF9C4
+    BackgroundColor<<dao>> #FFECB3
+    BackgroundColor<<db>> #C8E6C9
+    BackgroundColor<<model>> #FFE0B2
+    BorderColor #424242
+    FontSize 11
+}
+
+package "UI Layer" <<ui>> {
+    class App <<entry>> {
+        + main()
+    }
+    
+    class ConsoleUI <<ui>> {
+        + start()
+    }
+    
+    class EmployeeConsole <<ui>> {
+        + searchEmployee()
+        + updateEmployee()
+    }
+    
+    class ReportConsole <<ui>> {
+        + showMenu()
+    }
+}
+
+package "Service Layer" <<service>> {
+    class EmployeeService <<service>> {
+        + findById()
+        + findBySSN()
+        + updateEmployee()
+        + increaseSalaryInRange()
+    }
+    
+    class ReportService <<service>> {
+        + getEmployeeWithPayHistory()
+        + getTotalPayByJobTitle()
+    }
+}
+
+package "DAO Layer" <<dao>> {
+    class EmployeeDAO <<dao>> {
+        + insert()
+        + findById()
+        + update()
+    }
+    
+    class PayrollDAO <<dao>> {
+        + increaseAmountInRange()
+    }
+    
+    class ReportDAO <<dao>> {
+        + getEmployeeWithPayHistory()
+    }
+}
+
+package "Database Layer" <<db>> {
+    class DatabaseConnectionManager <<db>> {
+        + getInstance()
+        + getConnection()
+    }
+}
+
+package "Model Layer" <<model>> {
+    class Employee <<model>> {
+        + validateSSN()
+        + validateEmail()
+    }
+}
+
+App --> ConsoleUI
+ConsoleUI --> EmployeeConsole
+ConsoleUI --> ReportConsole
+EmployeeConsole --> EmployeeService
+ReportConsole --> ReportService
+EmployeeService --> EmployeeDAO
+EmployeeService --> PayrollDAO
+ReportService --> ReportDAO
+EmployeeDAO --> DatabaseConnectionManager
+PayrollDAO --> DatabaseConnectionManager
+ReportDAO --> DatabaseConnectionManager
+EmployeeDAO ..> Employee
+EmployeeService ..> Employee
+
+note right of EmployeeService
+  Coordinates multiple DAOs
+  Business logic layer
+end note
+
+note right of EmployeeDAO
+  PreparedStatements
+  Transaction management
+end note
+
+@enduml

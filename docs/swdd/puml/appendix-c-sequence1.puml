@@ -1,0 +1,79 @@
+@startuml UpdateEmployeeSequence
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam backgroundColor #FFFFFF
+
+actor User
+participant "ConsoleUI" as UI
+participant "EmployeeConsole" as EmpConsole
+participant "EmployeeService" as Service
+participant "EmployeeDAO" as DAO
+database "Database" as DB
+
+User -> UI: Select "Update Employee"
+activate UI
+UI -> EmpConsole: updateEmployee()
+activate EmpConsole
+
+EmpConsole -> User: Prompt for search method
+User -> EmpConsole: Enter employee ID
+
+EmpConsole -> Service: findById(id)
+activate Service
+Service -> DAO: findById(id)
+activate DAO
+DAO -> DB: SELECT with JOINs
+activate DB
+DB --> DAO: ResultSet
+deactivate DB
+DAO --> Service: Optional<Employee>
+deactivate DAO
+Service --> EmpConsole: Optional<Employee>
+deactivate Service
+
+EmpConsole -> User: Display current employee details
+
+EmpConsole -> User: Prompt for new values
+User -> EmpConsole: Enter new email, division ID, job title ID
+
+EmpConsole -> Service: updateEmployee(emp, divId, jobId)
+activate Service
+Service -> DAO: update(emp, divId, jobId)
+activate DAO
+
+DAO -> DB: BEGIN TRANSACTION
+activate DB
+DAO -> DB: UPDATE employees
+DAO -> DB: DELETE FROM employee_division
+DAO -> DB: INSERT INTO employee_division
+DAO -> DB: DELETE FROM employee_job_titles
+DAO -> DB: INSERT INTO employee_job_titles
+DAO -> DB: COMMIT
+DB --> DAO: Success
+deactivate DB
+
+DAO --> Service: true
+deactivate DAO
+Service --> EmpConsole: true
+deactivate Service
+
+EmpConsole -> Service: findById(id)
+activate Service
+Service -> DAO: findById(id)
+activate DAO
+DAO -> DB: SELECT with JOINs
+activate DB
+DB --> DAO: ResultSet
+deactivate DB
+DAO --> Service: Optional<Employee>
+deactivate DAO
+Service --> EmpConsole: Optional<Employee>
+deactivate Service
+
+EmpConsole -> User: Display updated employee details
+deactivate EmpConsole
+deactivate UI
+
+@enduml
+

@@ -1,0 +1,45 @@
+@startuml DatabaseConnectionManagerGetInstance
+
+start
+
+:Read environment variables;
+note right
+  DB_HOST (default: "localhost")
+  DB_PORT (default: "3306")
+  DB_NAME (required)
+  DB_USER (required)
+  DB_PASSWORD (required)
+end note
+
+if (instance exists?) then (yes)
+  :Return existing instance;
+  stop
+else (no)
+  :Create new instance;
+  
+  :Construct JDBC URL;
+  note right
+    jdbc:mysql://{host}:{port}/{name}
+    ?useSSL=false
+    &allowPublicKeyRetrieval=true
+    &serverTimezone=UTC
+  end note
+  
+  :Test connection;
+  
+  if (connection successful?) then (yes)
+    :Store instance;
+    :Return instance;
+    stop
+  else (no)
+    :Throw SQLException;
+    note right
+      Detailed error message
+      with connection parameters
+    end note
+    stop
+  endif
+endif
+
+@enduml
+

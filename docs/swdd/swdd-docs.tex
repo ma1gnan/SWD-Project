@@ -1,0 +1,760 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{tabularx}
+
+% Page setup
+\geometry{margin=0.8in}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{SWDD-EMS-2025-001}
+\fancyhead[R]{Employee Management System}
+\fancyfoot[C]{\thepage}
+
+% Title formatting
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Code listing setup
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    showstringspaces=false,
+    backgroundcolor=\color{gray!10}
+}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Employee Management System - Software Design Document},
+    pdfauthor={CSC 3350 Software Development Team}
+}
+
+\begin{document}
+
+% Title page
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries SWDD-EMS-2025-001}
+    
+    \vspace{1cm}
+    
+    {\LARGE Employee Management System}
+    
+    \vspace{0.5cm}
+    
+    {\Large Software Design Document}
+    
+    \vspace{2cm}
+    
+    \begin{tabular}{ll}
+        \textbf{Course:} & CSC 3350 Software Development \\
+        \textbf{Version:} & 1.0.0 \\
+        \textbf{Date:} & November 30, 2025 \\
+        \textbf{Status:} & Active Development \\
+    \end{tabular}
+    
+    \vfill
+    
+    \includegraphics[width=0.3\textwidth]{images/5.0class1.png}
+    
+    \vfill
+\end{titlepage}
+
+\newpage
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+\section{INTRODUCTION}
+
+\subsection{Purpose}
+
+This Software Design Document describes how the Employee Management System (EMS) is built and works. It explains the system architecture, database design, and user interfaces for students and developers working on the project.
+
+The EMS is a Java application that manages employee information, company divisions, job titles, and payroll records using a MySQL database. The system provides both command-line and graphical user interfaces.
+
+\subsection{Scope}
+
+The Employee Management System provides comprehensive functionality for managing organizational personnel data. The system supports:
+
+\begin{itemize}
+    \item \textbf{Employee Management:} Create, read, update, and delete employee records with SSN-based identification
+    \item \textbf{Organizational Structure:} Manage divisions and job titles with one-to-one employee assignments
+    \item \textbf{Payroll Operations:} Track pay periods and amounts with support for bulk percentage-based salary adjustments
+    \item \textbf{Search Capabilities:} Multi-criteria employee search by ID, SSN, or name fragments
+    \item \textbf{Reporting:} Generate aggregated payroll reports by job title, division, and individual employee history
+    \item \textbf{Data Integrity:} Enforce referential integrity through foreign key constraints and transactional operations
+\end{itemize}
+
+The system provides both a command-line interface (CLI) for all operations and a JavaFX-based graphical user interface while maintaining the existing business logic layer.
+
+\subsection{Overview}
+
+This document is organized into eight major sections:
+
+\begin{itemize}
+    \item \textbf{Section 1} provides introductory information including purpose, scope, and terminology
+    \item \textbf{Section 2} presents a high-level system overview and context
+    \item \textbf{Section 3} describes the system architecture, decomposition strategy, and design rationale
+    \item \textbf{Section 4} details the data design including database schema and data structures
+    \item \textbf{Section 5} provides detailed component designs with algorithms and interfaces
+    \item \textbf{Section 6} describes the human interface design for both CLI and JavaFX implementations
+    \item \textbf{Section 7} maps system components to functional requirements
+    \item \textbf{Section 8} contains supplementary materials and references
+\end{itemize}
+
+\subsection{Reference Material}
+
+The following documents and resources were consulted during system design:
+
+\textbf{Standards and Specifications:}
+\begin{itemize}
+    \item IEEE Std 1016-2009: IEEE Standard for Information Technology—Systems Design—Software Design Descriptions
+    \item JDBC 4.3 Specification (JSR 221)
+    \item Java SE 21 Language Specification (JLS)
+\end{itemize}
+
+\textbf{Technical Documentation:}
+\begin{itemize}
+    \item Oracle Java SE 21 Documentation
+    \item MySQL 9.0 Reference Manual
+    \item MySQL Connector/J 9.0 Developer Guide
+    \item Apache Maven 3.9 Documentation
+    \item JUnit 5 User Guide
+\end{itemize}
+
+\textbf{Project-Specific Documents:}
+\begin{itemize}
+    \item Software Requirements Specification (SWRS-EMS-2025-001)
+    \item Database Schema Documentation (schema.sql)
+    \item Setup and Installation Guide (SETUP.md)
+\end{itemize}
+
+\subsection{Key Terms}
+
+\begin{description}
+    \item[DAO] Data Access Object - Java classes that handle database operations
+    \item[JDBC] Java Database Connectivity - API for connecting to databases
+    \item[CRUD] Create, Read, Update, Delete - Basic database operations
+    \item[CLI] Command Line Interface - Text-based user interface
+    \item[GUI] Graphical User Interface - Visual interface with windows and buttons
+    \item[SSN] Social Security Number - Unique 9-digit employee identifier
+    \item[FK] Foreign Key - Database field that links to another table
+    \item[PK] Primary Key - Unique identifier for database records
+    \item[Maven] Build tool for Java projects
+    \item[JavaFX] Java framework for creating desktop applications
+\end{description}
+
+\section{SYSTEM OVERVIEW}
+
+The Employee Management System is a Java 21-based application designed to manage organizational personnel data through a MySQL 9.0 relational database. The system implements a layered architecture that separates concerns across five distinct layers: database, data access, business logic, service coordination, and user interface.
+
+\textbf{System Context:}
+
+The application operates as a standalone Java process that connects to a MySQL database server. Users interact with the system through both a terminal-based command-line interface and a JavaFX graphical user interface that present menu-driven navigation. All data persistence occurs through JDBC connections using prepared statements to ensure security and performance.
+
+\textbf{Primary Functionality:}
+
+\begin{enumerate}
+    \item \textbf{Employee Lifecycle Management:} Complete CRUD operations for employee records including personal information (name, SSN, email), organizational assignments (division, job title), and temporal tracking (creation and modification timestamps).
+    
+    \item \textbf{Organizational Structure:} Management of divisions and job titles as independent entities with one-to-one relationships to employees, enforcing that each employee belongs to exactly one division and holds exactly one job title.
+    
+    \item \textbf{Payroll Administration:} Recording and management of payroll records with pay period tracking. Supports bulk operations such as percentage-based salary increases within specified amount ranges using transactional guarantees.
+    
+    \item \textbf{Search and Retrieval:} Multi-criteria search capabilities allowing employee lookup by employee ID, SSN (exact match), or name fragments (partial match on first or last name).
+    
+    \item \textbf{Reporting and Analytics:} Generation of aggregated reports including employee pay history, total monthly pay by job title, and total monthly pay by division.
+\end{enumerate}
+
+\textbf{Technical Stack:}
+
+\begin{itemize}
+    \item \textbf{Runtime:} Java 21 (LTS) with modern language features
+    \item \textbf{Database:} MySQL 9.0 with InnoDB storage engine
+    \item \textbf{Build Tool:} Apache Maven 3.9.11
+    \item \textbf{Testing:} JUnit 5.10.1 (Jupiter)
+    \item \textbf{Database Connectivity:} MySQL Connector/J 9.0.0
+    \item \textbf{GUI Framework:} JavaFX 21
+    \item \textbf{Packaging:} Maven Shade Plugin for uber-JAR creation
+\end{itemize}
+
+\textbf{Deployment Model:}
+
+The application is packaged as a single executable JAR file containing all dependencies. Database connection parameters are provided through environment variables (DB\_HOST, DB\_PORT, DB\_NAME, DB\_USER, DB\_PASSWORD), allowing deployment across different environments without code modification. The database schema is initialized through SQL scripts that can be executed idempotently.
+
+\section{SYSTEM ARCHITECTURE}
+
+\subsection{System Architecture}
+
+The Employee Management System uses a \textbf{layered architecture} with five layers. Each layer has a specific job and only talks to the layers next to it. This makes the code easier to understand, test, and modify.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/3.1architecture1.png}
+    \caption{System Architecture Overview}
+    \label{fig:architecture1}
+\end{figure}
+
+\textbf{Layer Hierarchy (Bottom to Top):}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/3.1architecture2.png}
+    \caption{Detailed Layer Architecture}
+    \label{fig:architecture2}
+\end{figure}
+
+\textbf{The Five Layers:}
+
+\textbf{1. Database Layer (MySQL)}
+\begin{itemize}
+    \item Stores all data in tables
+    \item Enforces data rules (like unique SSNs)
+    \item Handles transactions safely
+\end{itemize}
+
+\textbf{2. Database Connection Layer}
+\begin{itemize}
+    \item Connects to the MySQL database
+    \item Reads connection settings from environment variables
+    \item Sets up database tables when first run
+\end{itemize}
+
+\textbf{3. Data Access Object (DAO) Layer}
+\begin{itemize}
+    \item Contains classes that run SQL queries
+    \item Converts database results to Java objects
+    \item Handles employee, payroll, and report operations
+\end{itemize}
+
+\textbf{4. Service Layer}
+\begin{itemize}
+    \item Coordinates multiple database operations
+    \item Contains business logic and validation rules
+    \item Provides simple methods for the UI to call
+\end{itemize}
+
+\textbf{5. User Interface Layer}
+\begin{itemize}
+    \item Command-line interface (text menus)
+    \item JavaFX graphical interface (windows and forms)
+    \item Handles user input and displays results
+\end{itemize}
+
+\subsection{Decomposition Description}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/3.2decomposition1.png}
+    \caption{System Decomposition Overview}
+    \label{fig:decomposition1}
+\end{figure}
+
+\textbf{Key Subsystems:}
+
+\textbf{Database Connection:} \texttt{DatabaseConnectionManager} (singleton) handles MySQL connections using environment variables and provides connection pooling.
+
+\textbf{Model Layer:} Entity classes (\texttt{Employee}, \texttt{Division}, \texttt{JobTitle}, \texttt{Payroll}) with validation and JavaBean conventions.
+
+\textbf{DAO Layer:} Interface-implementation pairs for each entity providing CRUD operations and specialized queries. Includes \texttt{ReportDAO} for aggregation queries.
+
+\textbf{Service Layer:} \texttt{EmployeeService} and \texttt{ReportService} coordinate multiple DAO operations and enforce business rules.
+
+\textbf{UI Layer:} CLI components (\texttt{ConsoleUI}, \texttt{EmployeeConsole}, \texttt{ReportConsole}) and JavaFX controllers (\texttt{MainController}, \texttt{EmployeeController}, \texttt{ReportController}).
+
+\subsection{Design Rationale}
+
+\textbf{Layered Architecture:} Chosen for clear separation of concerns, improved testability, and educational value. Each layer has well-defined responsibilities and can be tested independently.
+
+\textbf{DAO Pattern:} Raw JDBC with DAO pattern selected over ORM frameworks for transparency, performance control, simplicity, and minimal dependencies.
+
+\textbf{Dual UI Implementation:} CLI provides universal access while JavaFX offers enhanced user experience, demonstrating proper separation of concerns and interface flexibility.
+
+\section{DATA DESIGN}
+
+\subsection{Data Description}
+
+The system uses a normalized MySQL database with InnoDB storage engine in Third Normal Form (3NF). The schema includes five entity tables and two association tables enforcing one-to-one employee relationships.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/4.1database1.png}
+    \caption{Database Schema Diagram}
+    \label{fig:database1}
+\end{figure}
+
+\textbf{Key Features:}
+\begin{itemize}
+    \item \textbf{1NF:} All columns contain atomic values (no repeating groups or arrays)
+    \item \textbf{2NF:} All non-key attributes are fully dependent on the primary key
+    \item \textbf{3NF:} No transitive dependencies exist (non-key attributes depend only on the primary key)
+\end{itemize}
+
+\textbf{Storage Engine:}
+
+InnoDB was selected for all tables to provide:
+\begin{itemize}
+    \item ACID-compliant transaction support
+    \item Foreign key constraint enforcement
+    \item Row-level locking for concurrent access
+    \item Crash recovery capabilities
+    \item Referential integrity guarantees
+\end{itemize}
+
+\textbf{Character Set:}
+
+All tables use \texttt{utf8mb4} character set with \texttt{utf8mb4\_general\_ci} collation to support:
+\begin{itemize}
+    \item Full Unicode character range (including emojis, if needed)
+    \item International names and addresses
+    \item Consistent sorting and comparison behavior
+\end{itemize}
+
+\textbf{Temporal Tracking:}
+
+All entity tables include audit timestamps:
+\begin{itemize}
+    \item \texttt{created\_at}: Automatically set on INSERT using \texttt{DEFAULT CURRENT\_TIMESTAMP}
+    \item \texttt{updated\_at}: Automatically updated on UPDATE using \texttt{ON UPDATE CURRENT\_TIMESTAMP}
+\end{itemize}
+
+\subsection{Data Dictionary}
+
+\textbf{Table: employees}
+
+Primary entity table storing employee personal information.
+
+\begin{longtable}{|p{3cm}|p{3cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Column Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Description} \\
+\hline
+employee\_id & INT & PRIMARY KEY, AUTO\_INCREMENT & Unique employee identifier \\
+\hline
+first\_name & VARCHAR(50) & NOT NULL & Employee's first name \\
+\hline
+last\_name & VARCHAR(50) & NOT NULL & Employee's last name \\
+\hline
+SSN & VARCHAR(9) & UNIQUE, NOT NULL & Social Security Number (9 digits, no dashes) \\
+\hline
+email & VARCHAR(100) & NOT NULL & Employee's email address \\
+\hline
+created\_at & TIMESTAMP & DEFAULT CURRENT\_TIMESTAMP & Record creation timestamp \\
+\hline
+updated\_at & TIMESTAMP & DEFAULT CURRENT\_TIMESTAMP ON UPDATE CURRENT\_TIMESTAMP & Last modification timestamp \\
+\hline
+\end{longtable}
+
+\textbf{Indexes:} PRIMARY KEY (employee\_id), UNIQUE KEY (SSN), INDEX (first\_name), INDEX (last\_name), INDEX (email)
+
+\textbf{Table: division}
+
+Company divisions (Engineering, Sales, etc.).
+
+\begin{longtable}{|p{2.5cm}|p{2.5cm}|p{3.5cm}|p{5.5cm}|}
+\hline
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Description} \\
+\hline
+division\_id & INT & PK, AUTO\_INC & Unique division ID \\
+\hline
+name & VARCHAR(100) & NOT NULL & Division name \\
+\hline
+created\_at & TIMESTAMP & DEFAULT NOW & Creation time \\
+\hline
+updated\_at & TIMESTAMP & ON UPDATE NOW & Last update time \\
+\hline
+\end{longtable}
+
+\textbf{Table: job\_titles}
+
+Job titles like "Software Engineer", "Manager", etc.
+
+\begin{longtable}{|p{2.5cm}|p{2.5cm}|p{3.5cm}|p{5.5cm}|}
+\hline
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Description} \\
+\hline
+job\_title\_id & INT & PK, AUTO\_INC & Unique job title ID \\
+\hline
+title & VARCHAR(100) & NOT NULL & Job title name \\
+\hline
+created\_at & TIMESTAMP & DEFAULT NOW & Creation time \\
+\hline
+updated\_at & TIMESTAMP & ON UPDATE NOW & Last update time \\
+\hline
+\end{longtable}
+
+\textbf{Table: payroll}
+
+Payroll records tracking employee compensation by pay period.
+
+\begin{longtable}{|p{3cm}|p{3cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Column Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Description} \\
+\hline
+payroll\_id & INT & PRIMARY KEY, AUTO\_INCREMENT & Unique payroll record identifier \\
+\hline
+employee\_id & INT & NOT NULL, FOREIGN KEY & Reference to employees table \\
+\hline
+amount & DECIMAL(10,2) & NOT NULL, CHECK (amount >= 0) & Payment amount in dollars \\
+\hline
+pay\_period\_start & DATE & NOT NULL & Pay period start date \\
+\hline
+pay\_period\_end & DATE & NOT NULL & Pay period end date \\
+\hline
+created\_at & TIMESTAMP & DEFAULT CURRENT\_TIMESTAMP & Record creation timestamp \\
+\hline
+updated\_at & TIMESTAMP & DEFAULT CURRENT\_TIMESTAMP ON UPDATE CURRENT\_TIMESTAMP & Last modification timestamp \\
+\hline
+\end{longtable}
+
+\textbf{Foreign Keys:}
+\begin{itemize}
+    \item \texttt{employee\_id} REFERENCES employees(employee\_id) ON DELETE CASCADE
+\end{itemize}
+
+\textbf{Unique Constraints:}
+\begin{itemize}
+    \item UNIQUE KEY uk\_payroll\_employee\_period (employee\_id, pay\_period\_start, pay\_period\_end)
+\end{itemize}
+
+\section{COMPONENT DESIGN}
+
+This section provides detailed design specifications for each major component in the system, including algorithms, data structures, and interface contracts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/5.0class1.png}
+    \caption{Component Class Diagram}
+    \label{fig:class1}
+\end{figure}
+
+\textbf{Database Access Layer:} \texttt{DatabaseConnectionManager} (singleton) manages MySQL connections using environment variables. Provides connection pooling and retry logic.
+
+\textbf{DAO Layer:} Interface-implementation pairs for each entity (\texttt{EmployeeDAO}, \texttt{PayrollDAO}, \texttt{ReportDAO}) handle CRUD operations and complex queries using prepared statements.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/5.2activity1.png}
+    \caption{DAO Insert Operation}
+    \label{fig:activity2-1}
+\end{figure}
+
+\textbf{Service Layer:} \texttt{EmployeeService} and \texttt{ReportService} coordinate multiple DAO operations, enforce business rules, and provide simplified APIs for UI layers.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/5.2activty3.png}
+    \caption{Employee DAO Update Operation}
+    \label{fig:activity2-3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/5.2activty4.png}
+    \caption{Payroll DAO Bulk Update Operation}
+    \label{fig:activity2-4}
+\end{figure}
+
+\textbf{Component: EmployeeDAO}
+
+\textit{Type:} Data Access Object\\
+\textit{Package:} com.emp\_mgmt.dao\\
+\textit{Purpose:} CRUD and search operations for employee records with transactional division/job title updates
+
+\begin{lstlisting}[language=Java]
+public interface EmployeeDAO {
+    Employee insert(Employee emp, int divisionId, int jobTitleId) throws SQLException;
+    Optional<Employee> findById(int id) throws SQLException;
+    Optional<Employee> findBySSN(String ssn) throws SQLException;
+    List<Employee> findByNameFragment(String fragment) throws SQLException;
+    boolean update(Employee emp, int divisionId, int jobTitleId) throws SQLException;
+    boolean delete(int employeeId) throws SQLException;
+}
+\end{lstlisting}
+
+\subsection{Service Layer}
+
+\textbf{Component: EmployeeService}
+
+\textit{Type:} Service Coordinator\\
+\textit{Package:} com.emp\_mgmt.service\\
+\textit{Purpose:} Coordinate employee and payroll operations across multiple DAOs
+
+\textit{Dependencies:}
+\begin{itemize}
+    \item EmployeeDAO
+    \item PayrollDAO
+    \item DivisionDAO
+    \item JobTitleDAO
+\end{itemize}
+
+\subsection{User Interface Layer}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/5.5activty1.png}
+    \caption{CLI User Interface Flow}
+    \label{fig:activity5-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/5.5activty2.png}
+    \caption{JavaFX Employee Management Flow}
+    \label{fig:activity5-2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/5.5activty3.png}
+    \caption{JavaFX Report Generation Flow}
+    \label{fig:activity5-3}
+\end{figure}
+
+\textbf{Component: ConsoleUI}
+
+\textit{Type:} UI Coordinator\\
+\textit{Package:} com.emp\_mgmt.ui\\
+\textit{Purpose:} Main menu navigation and command routing for CLI interface
+
+\textbf{Component: JavaFX Controllers}
+
+\textit{Type:} UI Controllers\\
+\textit{Package:} com.emp\_mgmt.javafx\\
+\textit{Purpose:} Handle user interactions and coordinate with service layer for GUI interface
+
+\section{HUMAN INTERFACE DESIGN}
+
+\subsection{Overview of User Interface}
+
+The system provides two interfaces: a command-line interface (CLI) with hierarchical menus and numeric selection, and a JavaFX graphical interface with tabbed navigation, data grids, and modal dialogs. Both interfaces provide input validation and user-friendly error handling.
+
+\subsection{Screen Images}
+
+\textbf{CLI Interface Examples:}
+
+The CLI provides text-based menus and forms as shown in the original markdown document. Users interact through numbered menu selections and text input fields.
+
+\textbf{JavaFX Interface:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/6.4javafx1.png}
+    \caption{JavaFX Main Application Window}
+    \label{fig:javafx1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/6.4javafx2.png}
+    \caption{JavaFX Employee Management Interface}
+    \label{fig:javafx2}
+\end{figure}
+
+\subsection{Screen Objects and Actions}
+
+\textbf{JavaFX Main Window Components:}
+
+\begin{longtable}{|p{3cm}|p{2cm}|p{3cm}|p{7cm}|}
+\hline
+\textbf{Object} & \textbf{Type} & \textbf{Action} & \textbf{Result} \\
+\hline
+Employee Tab & Tab & Click & Navigate to employee management \\
+\hline
+Payroll Tab & Tab & Click & Navigate to payroll management \\
+\hline
+Reports Tab & Tab & Click & Navigate to reporting interface \\
+\hline
+Employee Table & Data Grid & Select row & Display employee details \\
+\hline
+Search Field & Text Input & Enter term & Filter employee list \\
+\hline
+Add Button & Button & Click & Open new employee dialog \\
+\hline
+Edit Button & Button & Click & Open edit employee dialog \\
+\hline
+Delete Button & Button & Click & Show confirmation dialog \\
+\hline
+\end{longtable}
+
+\textbf{JavaFX Implementation:}
+
+The JavaFX implementation maintains the existing service and DAO layers while providing a graphical interface. The architecture follows the Model-View-Controller (MVC) pattern with the following components:
+
+\textbf{Main Window:} Menu bar (File, Edit, Reports, Help), toolbar with quick access buttons, status bar showing connection status, and tabbed content area.
+
+\textbf{Employee Management Tab:} Search panel with combo box for search type, sortable and filterable employee results table, detail panel with labeled form fields, and action buttons (Add, Update, Delete, Refresh).
+
+\textbf{Payroll Management Tab:} Employee selector dropdown, payroll records table with chronological listing, bulk update panel with percentage and range inputs, and action buttons for record management.
+
+\textbf{Reports Tab:} Report type selector with radio buttons, parameter panel with date pickers, results area with formatted TableView, and export buttons (PDF, CSV, Print).
+
+\textbf{Technology Stack:} JavaFX 21, FXML for declarative UI definition, CSS for consistent theming, ObservableList for table data binding, ControlsFX for enhanced form validation, and JavaFX Charts API for visualization.
+
+The implementation provides enhanced usability with point-and-click navigation, improved data presentation with sortable tables and color-coded indicators, real-time validation with visual feedback, multi-window support, and comprehensive export capabilities.
+
+\section{REQUIREMENTS MATRIX}
+
+This section traces system components to functional requirements from the Software Requirements Specification (SWRS-EMS-2025-001).
+
+\begin{longtable}{|p{1.5cm}|p{4.5cm}|p{4cm}|p{4cm}|}
+\hline
+\textbf{ID} & \textbf{Requirement} & \textbf{Components} & \textbf{Testing} \\
+\hline
+FR-1 & Store employee records & Employee table, EmployeeDAO & Database tests \\
+\hline
+FR-2 & Unique SSN per employee & SSN UNIQUE constraint & Duplicate insert test \\
+\hline
+FR-3 & Validate 9-digit SSN & Employee.validateSSN() & Invalid SSN test \\
+\hline
+FR-4 & Validate email format & Employee.validateEmail() & Invalid email test \\
+\hline
+FR-5 & One division per employee & employee\_division table & Foreign key test \\
+\hline
+FR-25 & User interface navigation & ConsoleUI, JavaFX controllers & UI navigation test \\
+\hline
+FR-26 & Input validation with retry & Input validation methods & Invalid input test \\
+\hline
+FR-27 & User-friendly error messages & Exception handling & Error condition test \\
+\hline
+\end{longtable}
+
+\textbf{Coverage Summary:}
+
+\begin{itemize}
+    \item \textbf{Total Functional Requirements:} 38
+    \item \textbf{Total Non-Functional Requirements:} 10
+    \item \textbf{Total Components:} 25+ (classes and database objects)
+    \item \textbf{Coverage:} 100\% of requirements mapped to implementing components
+\end{itemize}
+
+\section{APPENDICES}
+
+\subsection{Appendix A: Sequence Diagrams}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/appendix-c-sequence1.png}
+    \caption{Employee Update Sequence}
+    \label{fig:sequence1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/appendix-c-sequence2.png}
+    \caption{Report Generation Sequence}
+    \label{fig:sequence2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/appendix-c-sequence3.png}
+    \caption{Payroll Update Sequence Diagram}
+    \label{fig:sequence3}
+\end{figure}
+
+\subsection{Appendix D: Technology Versions}
+
+\begin{longtable}{|p{3.5cm}|p{2.5cm}|p{8cm}|}
+\hline
+\textbf{Technology} & \textbf{Version} & \textbf{Purpose} \\
+\hline
+Java & 21 & Programming language and runtime \\
+\hline
+MySQL & 9.0 & Database server \\
+\hline
+MySQL Connector/J & 9.0.0 & Database connection driver \\
+\hline
+Maven & 3.9.11 & Build and dependency management \\
+\hline
+JUnit Jupiter & 5.10.1 & Unit testing framework \\
+\hline
+JavaFX & 21 & Desktop GUI framework \\
+\hline
+Maven Shade Plugin & 3.5.1 & Creates executable JAR files \\
+\hline
+\end{longtable}
+
+\subsection{Appendix E: Environment Variables}
+
+\begin{longtable}{|p{2.5cm}|p{2cm}|p{2.5cm}|p{7cm}|}
+\hline
+\textbf{Variable} & \textbf{Required} & \textbf{Default} & \textbf{Description} \\
+\hline
+DB\_HOST & Yes & localhost & MySQL server address \\
+\hline
+DB\_PORT & Yes & 3306 & MySQL server port \\
+\hline
+DB\_NAME & Yes & - & Database name \\
+\hline
+DB\_USER & Yes & - & Database username \\
+\hline
+DB\_PASSWORD & Yes & - & Database password \\
+\hline
+\end{longtable}
+
+\subsection{Appendix C: References}
+
+\begin{enumerate}
+    \item IEEE Computer Society. (2009). \textit{IEEE Std 1016-2009: IEEE Standard for Information Technology—Systems Design—Software Design Descriptions}. IEEE.
+    
+    \item Oracle Corporation. (2023). \textit{Java SE 21 Documentation}. Retrieved from \url{https://docs.oracle.com/en/java/javase/21/}
+    
+    \item Oracle Corporation. (2024). \textit{MySQL 9.0 Reference Manual}. Retrieved from \url{https://dev.mysql.com/doc/refman/9.0/en/}
+    
+    \item Apache Software Foundation. (2024). \textit{Maven – Welcome to Apache Maven}. Retrieved from \url{https://maven.apache.org/}
+    
+    \item JUnit Team. (2024). \textit{JUnit 5 User Guide}. Retrieved from \url{https://junit.org/junit5/docs/current/user-guide/}
+    
+    \item Gamma, E., Helm, R., Johnson, R., \& Vlissides, J. (1994). \textit{Design Patterns: Elements of Reusable Object-Oriented Software}. Addison-Wesley.
+    
+    \item Fowler, M. (2002). \textit{Patterns of Enterprise Application Architecture}. Addison-Wesley.
+    
+    \item Bloch, J. (2018). \textit{Effective Java} (3rd ed.). Addison-Wesley.
+\end{enumerate}
+
+\vspace{2cm}
+
+\textbf{Document Control:}
+
+\begin{longtable}{|p{2cm}|p{3cm}|p{3.5cm}|p{5.5cm}|}
+\hline
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Changes} \\
+\hline
+1.0.0 & 2025-11-30 & Dev Team & Initial release with JavaFX \\
+\hline
+\end{longtable}
+
+\textbf{Approval:}
+
+This document has been reviewed and approved for use in the Employee Management System project.
+
+\vspace{1cm}
+
+\textit{End of Software Design Document}
+
+\end{document}

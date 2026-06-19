@@ -1,0 +1,93 @@
+@startuml CrossCuttingConcerns
+
+skinparam class {
+    BackgroundColor<<model>> #FFE0B2
+    BackgroundColor<<dto>> #B2DFDB
+    BorderColor #424242
+    FontSize 11
+}
+
+package "Model Layer (Cross-Cutting)" <<model>> {
+    class Employee {
+        - employeeId: Integer
+        - firstName: String
+        - lastName: String
+        - ssn: String
+        - email: String
+        - divisionId: Integer
+        - jobTitleId: Integer
+        + validateSSN(): void
+        + validateEmail(): void
+    }
+    
+    class Division {
+        - divisionId: Integer
+        - name: String
+    }
+    
+    class JobTitle {
+        - jobTitleId: Integer
+        - title: String
+    }
+    
+    class Payroll {
+        - payrollId: Integer
+        - employeeId: Integer
+        - amount: BigDecimal
+        - payPeriodStart: LocalDate
+        - payPeriodEnd: LocalDate
+    }
+    
+    class EmployeeDivision {
+        - employeeId: Integer
+        - divisionId: Integer
+    }
+    
+    class EmployeeJobTitle {
+        - employeeId: Integer
+        - jobTitleId: Integer
+    }
+}
+
+package "DTO Layer (Reporting)" <<dto>> {
+    class EmployeeWithPayHistory {
+        - employee: Employee
+        - divisionName: String
+        - jobTitleName: String
+        - payRecords: List<PayrollRecord>
+    }
+    
+    class JobTitlePay {
+        - jobTitleName: String
+        - totalPay: BigDecimal
+    }
+    
+    class DivisionPay {
+        - divisionName: String
+        - totalPay: BigDecimal
+    }
+    
+    class PayrollRecord {
+        - payrollId: Integer
+        - employeeId: Integer
+        - amount: BigDecimal
+        - periodStart: LocalDate
+        - periodEnd: LocalDate
+    }
+}
+
+EmployeeWithPayHistory *-- Employee
+EmployeeWithPayHistory *-- PayrollRecord
+
+note top of Employee
+  Used across all layers
+  Validation in model
+end note
+
+note top of EmployeeWithPayHistory
+  Aggregates data from
+  multiple tables for reporting
+end note
+
+@enduml
+

@@ -1,0 +1,94 @@
+@startuml DatabaseSchema
+
+!define TABLE class
+!define PK <b><color:red>PK</color></b>
+!define FK <b><color:blue>FK</color></b>
+!define UK <b><color:green>UK</color></b>
+
+skinparam class {
+    BackgroundColor #FFFEF7
+    BorderColor #424242
+    ArrowColor #424242
+}
+
+entity "employees" as emp {
+    PK employee_id : INT
+    first_name : VARCHAR(50)
+    last_name : VARCHAR(50)
+    UK SSN : VARCHAR(9)
+    email : VARCHAR(100)
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "division" as div {
+    PK division_id : INT
+    name : VARCHAR(100)
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "job_titles" as job {
+    PK job_title_id : INT
+    title : VARCHAR(100)
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "payroll" as pay {
+    PK payroll_id : INT
+    FK employee_id : INT
+    amount : DECIMAL(10,2)
+    pay_period_start : DATE
+    pay_period_end : DATE
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "employee_division" as emp_div {
+    PK,FK employee_id : INT
+    FK division_id : INT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "employee_job_titles" as emp_job {
+    PK,FK employee_id : INT
+    FK job_title_id : INT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+emp ||--o{ pay : "has"
+emp ||--|| emp_div : "belongs to"
+emp ||--|| emp_job : "has"
+div ||--o{ emp_div : "contains"
+job ||--o{ emp_job : "describes"
+
+note right of emp
+    UNIQUE constraint on SSN
+    Indexes on first_name,
+    last_name, SSN, email
+end note
+
+note right of pay
+    CHECK: amount >= 0
+    UNIQUE: (employee_id,
+    pay_period_start,
+    pay_period_end)
+end note
+
+note right of emp_div
+    PK on employee_id enforces
+    one-to-one relationship
+    (one division per employee)
+end note
+
+note right of emp_job
+    PK on employee_id enforces
+    one-to-one relationship
+    (one job title per employee)
+end note
+
+@enduml
+

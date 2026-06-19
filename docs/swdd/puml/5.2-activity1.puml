@@ -1,0 +1,70 @@
+@startuml EmployeeDAOInsert
+
+start
+
+:Validate divisionId > 0 AND jobTitleId > 0;
+
+if (validation fails?) then (yes)
+  :Throw SQLException;
+  stop
+endif
+
+:Get database connection;
+
+:BEGIN TRANSACTION\n(setAutoCommit(false));
+
+partition "Transaction Block" {
+  :Check divisionExists(divisionId);
+  
+  if (division exists?) then (no)
+    :ROLLBACK;
+    :Throw SQLException\n"Division ID does not exist";
+    stop
+  endif
+  
+  :Check jobTitleExists(jobTitleId);
+  
+  if (job title exists?) then (no)
+    :ROLLBACK;
+    :Throw SQLException\n"Job Title ID does not exist";
+    stop
+  endif
+  
+  :Prepare INSERT statement;
+  note right
+    INSERT INTO employees
+    (first_name, last_name, SSN, email)
+    VALUES (?, ?, ?, ?)
+  end note
+  
+  :Set parameters from employee object;
+  
+  :Execute insert;
+  
+  :Get generated employee_id;
+  
+  :Set employee.employeeId = generated_id;
+  
+  :upsertEmployeeDivision(employee_id, divisionId);
+  note right
+    DELETE existing + INSERT new
+  end note
+  
+  :upsertEmployeeJobTitle(employee_id, jobTitleId);
+  note right
+    DELETE existing + INSERT new
+  end note
+  
+  :COMMIT TRANSACTION;
+}
+
+:Restore autoCommit = true;
+
+:Close resources;
+
+:Return employee with populated ID;
+
+stop
+
+@enduml
+

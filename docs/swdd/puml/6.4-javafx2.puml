@@ -1,0 +1,48 @@
+@startuml JavaFXMainWindowMockup
+
+salt
+{+
+  {* File | Edit | Reports | Help }
+  {
+    [+] | [✎] | [🗑] | [↻] | { Search: | ^ID^ | "          " | [ Search ] }
+  }
+  {
+    {T
+      + Employees
+      + Payroll
+      + Reports
+      + Settings
+    } |
+    {
+      {
+        "Search Results"
+        {#
+          . ID | Name         | SSN       | Division    | Job Title
+          . 1  | John Smith   | 123456789 | Engineering | Software Engineer
+          . 2  | Jane Doe     | 234567890 | Sales       | Sales Manager
+          . 3  | Mike Johnson | 345678901 | Engineering | Senior Engineer
+          . .. | ...          | ...       | ...         | ...
+        }
+      }
+      --
+      {
+        "Employee Details"
+        {
+          Name:     | "John Smith                    "
+          SSN:      | "123456789                     "
+          Email:    | "john.smith@company.com        "
+          Division: | ^Engineering^
+          Job Title:| ^Software Engineer^
+        }
+        [ Update ] | [ Cancel ]
+      }
+    }
+  }
+  {
+    Connected to: employee_db@localhost | Last updated: 10:45 AM
+  }
+}
+]
+
+@enduml
+

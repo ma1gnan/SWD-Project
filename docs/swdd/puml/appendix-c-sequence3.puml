@@ -1,0 +1,56 @@
+@startuml BulkSalaryUpdateSequence
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam backgroundColor #FFFFFF
+
+actor User
+participant "ConsoleUI" as UI
+participant "EmployeeConsole" as EmpConsole
+participant "EmployeeService" as Service
+participant "PayrollDAO" as DAO
+database "Database" as DB
+
+User -> UI: Select "Update Salary by Percentage"
+activate UI
+UI -> EmpConsole: updateSalaryByPercentage()
+activate EmpConsole
+
+EmpConsole -> User: Prompt for percentage
+User -> EmpConsole: Enter 3.2
+
+EmpConsole -> User: Prompt for minimum amount
+User -> EmpConsole: Enter $58000
+
+EmpConsole -> User: Prompt for maximum amount
+User -> EmpConsole: Enter $105000
+
+EmpConsole -> EmpConsole: Validate min < max
+
+EmpConsole -> User: Display confirmation\n"Applying 3.2% increase\nfor $58000 - $105000"
+
+EmpConsole -> Service: increaseSalaryInRange(\n  min=58000,\n  max=105000,\n  percentage=3.2)
+activate Service
+
+Service -> DAO: increaseAmountInRange(\n  min=58000,\n  max=105000,\n  percent=3.2)
+activate DAO
+
+DAO -> DAO: Calculate factor\nfactor = (3.2 / 100) + 1 = 1.032
+
+DAO -> DB: UPDATE payroll\nSET amount = amount * 1.032\nWHERE amount BETWEEN 58000 AND 105000
+activate DB
+DB --> DAO: Rows affected: 47
+deactivate DB
+
+DAO --> Service: 47
+deactivate DAO
+Service --> EmpConsole: 47
+deactivate Service
+
+EmpConsole -> User: Display result\n"Updated 47 payroll record(s)"
+
+deactivate EmpConsole
+deactivate UI
+
+@enduml
+

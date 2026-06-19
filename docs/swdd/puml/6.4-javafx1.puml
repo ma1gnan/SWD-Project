@@ -1,0 +1,75 @@
+@startuml JavaFXArchitecture
+
+skinparam component {
+    BackgroundColor<<view>> #E1F5FE
+    BackgroundColor<<controller>> #F3E5F5
+    BackgroundColor<<service>> #FFF9C4
+    BorderColor #424242
+}
+
+package "JavaFX View Layer (FXML + CSS)" <<view>> {
+    [MainWindow.fxml]
+    [EmployeeTab.fxml]
+    [PayrollTab.fxml]
+    [ReportsTab.fxml]
+    [AddEmployeeDialog.fxml]
+    [Styles.css]
+}
+
+package "JavaFX Controller Layer" <<controller>> {
+    [MainController]
+    [EmployeeController]
+    [PayrollController]
+    [ReportController]
+    [DialogController]
+}
+
+package "Service Layer\n(NO CHANGES)" <<service>> {
+    [EmployeeService]
+    [ReportService]
+}
+
+package "DAO Layer\n(NO CHANGES)" {
+    [EmployeeDAO]
+    [PayrollDAO]
+    [ReportDAO]
+}
+
+[MainWindow.fxml] ..> [MainController] : binds to
+[EmployeeTab.fxml] ..> [EmployeeController] : binds to
+[PayrollTab.fxml] ..> [PayrollController] : binds to
+[ReportsTab.fxml] ..> [ReportController] : binds to
+[AddEmployeeDialog.fxml] ..> [DialogController] : binds to
+
+[MainController] --> [EmployeeController] : manages
+[MainController] --> [PayrollController] : manages
+[MainController] --> [ReportController] : manages
+
+[EmployeeController] --> [EmployeeService] : delegates to
+[PayrollController] --> [EmployeeService] : delegates to
+[ReportController] --> [ReportService] : delegates to
+
+[EmployeeService] --> [EmployeeDAO] : uses
+[EmployeeService] --> [PayrollDAO] : uses
+[ReportService] --> [ReportDAO] : uses
+
+note right of [MainController]
+  MVC Pattern
+  Controllers delegate to
+  existing service layer
+end note
+
+note right of [EmployeeService]
+  Business logic unchanged
+  Same API as CLI version
+  Services remain UI-agnostic
+end note
+
+note bottom of [Styles.css]
+  Professional theming
+  Consistent color scheme
+  Responsive layouts
+end note
+
+@enduml
+

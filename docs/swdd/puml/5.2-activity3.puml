@@ -1,0 +1,39 @@
+@startuml PayrollDAOIncreaseAmountInRange
+
+start
+
+:Validate parameters not null;
+
+if (percent is null OR min is null OR max is null?) then (yes)
+  :Throw IllegalArgumentException;
+  stop
+endif
+
+:Calculate factor = (percent / 100) + 1;
+note right
+  Example: 3.2% → factor = 1.032
+end note
+
+:Prepare UPDATE statement;
+note right
+  UPDATE payroll
+  SET amount = amount * ?
+  WHERE amount BETWEEN ? AND ?
+end note
+
+:Set parameter 1 = factor;
+:Set parameter 2 = min;
+:Set parameter 3 = max;
+
+:Execute update;
+
+:Get rows affected;
+
+:Close resources;
+
+:Return rows affected;
+
+stop
+
+@enduml
+

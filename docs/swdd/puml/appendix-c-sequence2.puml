@@ -1,0 +1,58 @@
+@startuml SearchEmployeeSequence
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam backgroundColor #FFFFFF
+
+actor User
+participant "ConsoleUI" as UI
+participant "EmployeeConsole" as EmpConsole
+participant "EmployeeService" as Service
+participant "EmployeeDAO" as DAO
+database "Database" as DB
+
+User -> UI: Select "Search Employee"
+activate UI
+UI -> EmpConsole: searchEmployee()
+activate EmpConsole
+
+EmpConsole -> User: Display search options\n(1. ID, 2. SSN, 3. Name)
+User -> EmpConsole: Choose option 3 (Name)
+
+EmpConsole -> User: Prompt for name fragment
+User -> EmpConsole: Enter "Smith"
+
+EmpConsole -> Service: findByName("Smith")
+activate Service
+Service -> DAO: findByNameFragment("Smith")
+activate DAO
+
+DAO -> DAO: escapeLikeWildcards("Smith")
+note right: Escape % and _ characters
+
+DAO -> DB: SELECT ... WHERE first_name LIKE '%Smith%'\n   OR last_name LIKE '%Smith%'
+activate DB
+DB --> DAO: ResultSet (multiple rows)
+deactivate DB
+
+DAO -> DAO: Map ResultSet to List<Employee>
+DAO --> Service: List<Employee>
+deactivate DAO
+Service --> EmpConsole: List<Employee>
+deactivate Service
+
+alt Multiple employees found
+    EmpConsole -> User: Display numbered list\n1. John Smith (ID: 1)\n2. Jane Smith (ID: 17)
+    User -> EmpConsole: Select employee number: 1
+    EmpConsole -> EmpConsole: Get selected employee from list
+else Single employee found
+    note over EmpConsole: Skip selection, use single result
+end
+
+EmpConsole -> User: Display employee details\n(ID, Name, SSN, Email, Division, Job Title)
+
+deactivate EmpConsole
+deactivate UI
+
+@enduml
+
