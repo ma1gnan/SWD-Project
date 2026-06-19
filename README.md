@@ -1,5 +1,6 @@
 # SWD-Project
-Group Software Development Project 
+Group Software Development Project:
+
 Trajuan Smith, Ryan Semancik, Deepak Govindarajan, Tarun Gadhiraju, Deborah Maignan, Aaron Mcleed
 # Employee Management System
 
